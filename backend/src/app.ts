@@ -26,8 +26,8 @@ app.get('/api', (req: Request, res: Response) => {
   res.json('Hello, world!');
 });
 
-app.use('/api/inventory', router)
+app.use('/api/inventory', router);
 
-app.listen(port, () => {
-  console.log(`Server is running at http://localhost:${port}`);
-});
+module.exports = (req: Request, res: Response) => {
+  app(req, res); 
+};
