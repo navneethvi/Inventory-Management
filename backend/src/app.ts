@@ -6,10 +6,7 @@ const app = express();
 const port = 3000;
 
 const corsOptions = {
-  origin: [
-    'https://inventory-frontend-wheat.vercel.app', // Frontend URL
-    'https://inventory-frontend-pb73ndv9h-navneethvis-projects.vercel.app', // Additional frontend (if any)
-  ],
+  origin: '*',
   methods: ['GET', 'POST', 'PUT', 'DELETE'],
   allowedHeaders: ['Content-Type', 'Authorization'],
 };
