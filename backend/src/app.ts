@@ -2,9 +2,13 @@ import express, { Request, Response } from 'express';
 import cors from 'cors';
 import path from 'path';
 import router from './routes';
+import { configDotenv } from "dotenv";
+
 
 const app = express();
 const port = 3000;
+
+configDotenv()
 
 const corsOptions = {
   origin: '*',
