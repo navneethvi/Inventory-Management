@@ -23,6 +23,8 @@ import {
   FormControlLabel,
 } from "@mui/material";
 
+import { dummyInventory } from "../datas/dummy";
+
 type FilterType = "state" | "duration";
 
 
@@ -51,7 +53,8 @@ export default function InventoryDashboard() {
 
   //! need to do the calculations and all to display proper datas
 
-  const prices = inventory.map(item => parseInt(item.price.split(' ')[0], 10));
+
+  const prices = dummyInventory.map(item => parseInt(item.price.split(' ')[0], 10));
 
 
   const toggleFilter = () => {
@@ -108,7 +111,7 @@ export default function InventoryDashboard() {
   };
 
   
-  const historyLogData = inventory.map((item) => ({
+  const historyLogData = dummyInventory.map((item) => ({
     date: item.timestamp, 
     newItems: 1,
     newTotalMSRP: item.price,

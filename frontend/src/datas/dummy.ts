@@ -1,0 +1,43 @@
+export const dummyInventory = [
+    {
+      brand: "Ford",
+      condition: "used",
+      custom_label_0: "Edge",
+      description: "Used 2020 Ford Edge",
+      price: "22145 USD",
+      product_type: "SUV",
+      timestamp: "2024-04-13 06:52:56",
+      title: "Pre-Owned 2020 Ford Edge SEL",
+    },
+    {
+      brand: "Toyota",
+      condition: "new",
+      custom_label_0: "Camry",
+      description: "New 2024 Toyota Camry",
+      price: "27995 USD",
+      product_type: "Sedan",
+      timestamp: "2024-05-10 10:00:00",
+      title: "2024 Toyota Camry LE",
+    },
+    {
+      brand: "Honda",
+      condition: "used",
+      custom_label_0: "Civic",
+      description: "Used 2021 Honda Civic",
+      price: "18999 USD",
+      product_type: "Sedan",
+      timestamp: "2024-03-20 14:22:11",
+      title: "Pre-Owned 2021 Honda Civic EX",
+    },
+    {
+      brand: "Chevrolet",
+      condition: "new",
+      custom_label_0: "Malibu",
+      description: "New 2024 Chevrolet Malibu",
+      price: "23995 USD",
+      product_type: "Sedan",
+      timestamp: "2024-05-12 08:00:45",
+      title: "2024 Chevrolet Malibu LT",
+    },
+    // Add more dummy data as needed...
+  ];
