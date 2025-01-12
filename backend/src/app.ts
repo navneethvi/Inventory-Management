@@ -12,7 +12,8 @@ const corsOptions = {
   allowedHeaders: ['Content-Type', 'Authorization'],
 };
 
-export const filePath = path.join(process.cwd(), 'src', 'data', 'sample-data-v2.csv');
+export const filePath = path.join(process.cwd(), 'public', 'data', 'sample-data-v2.csv');
+console.log("Current working directory:", process.cwd());
 
 app.use((req, res, next) => {
   console.log('Request Origin:', req.headers.origin);
