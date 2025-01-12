@@ -110,7 +110,7 @@ export default function InventoryDashboard() {
     setPage(newPage);
   };
 
-  
+  // ! My backend is not deployed so im giving dumy datas
   const historyLogData = dummyInventory.map((item) => ({
     date: item.timestamp, 
     newItems: 1,
@@ -140,7 +140,7 @@ export default function InventoryDashboard() {
             display: "flex",
             justifyContent: "space-between",
             alignItems: "center",
-            backgroundColor: "#374151", 
+            backgroundColor: "#1F1F1F", 
             padding: "10px 20px",
           }}
         >
