@@ -7,12 +7,18 @@ const port = 3000;
 
 const corsOptions = {
   origin: [
-    'https://inventory-frontend-wheat.vercel.app',  // Frontend URL
-    'https://inventory-frontend-pb73ndv9h-navneethvis-projects.vercel.app'          // Add any other URLs that should be allowed
+    'https://inventory-frontend-wheat.vercel.app', // Frontend URL
+    'https://inventory-frontend-pb73ndv9h-navneethvis-projects.vercel.app', // Additional frontend (if any)
   ],
   methods: ['GET', 'POST', 'PUT', 'DELETE'],
   allowedHeaders: ['Content-Type', 'Authorization'],
 };
+
+
+app.use((req, res, next) => {
+  console.log('Request Origin:', req.headers.origin);
+  next();
+});
 
 app.use(cors(corsOptions));
 app.use(express.json());
