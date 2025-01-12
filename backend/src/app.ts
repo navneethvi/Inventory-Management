@@ -6,10 +6,14 @@ const app = express();
 const port = 3000;
 
 const corsOptions = {
-  origin: 'https://inventory-ec0e4zbvc-navneethvis-projects.vercel.app', 
-  methods: ['GET', 'POST', 'PUT', 'DELETE'],
+  origin: [
+    'https://inventory-ec0e4zbvc-navneethvis-projects.vercel.app',
+    'https://inventory-frontend-wheat.vercel.app',
+  ],  methods: ['GET', 'POST', 'PUT', 'DELETE'],
   allowedHeaders: ['Content-Type', 'Authorization'],  
 };
+
+app.use(cors(corsOptions))
 app.use(express.json());
 
 app.get('/', (req: Request, res: Response) => {
