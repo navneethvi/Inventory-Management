@@ -2,6 +2,8 @@ import { Request, Response, NextFunction } from "express";
 import csvParser from "csv-parser";
 import { createReadStream } from "fs";
 import winston from "winston";
+import { filePath } from "./app";
+
 
 
 const logger = winston.createLogger({
@@ -19,7 +21,7 @@ const getInventoryDatas = async (req: Request, res: Response, next: NextFunction
 
         logger.info('Filters applied:', filters);
 
-        createReadStream('./src/data/sample-data-v2.csv')
+        createReadStream(filePath)
             .pipe(csvParser())
             .on('data', (row) => {
                 logger.debug('Processing row:', row); 
