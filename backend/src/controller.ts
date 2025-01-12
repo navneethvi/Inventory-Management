@@ -1,10 +1,9 @@
 import { Request, Response, NextFunction } from "express";
 import csvParser from "csv-parser";
-import { createReadStream } from "fs";
+import AWS from 'aws-sdk';
 import winston from "winston";
-import { filePath } from "./app";
 
-
+const s3 = new AWS.S3();
 
 const logger = winston.createLogger({
   level: 'info',
@@ -16,41 +15,53 @@ const logger = winston.createLogger({
 const getInventoryDatas = async (req: Request, res: Response, next: NextFunction) => {
     try {
         const filters = req.query;
+        const params = {
+            Bucket: 'educore-bucket',
+            Key: '2025-01-12T22:59:48.147Z-sample-data-v2.csv', 
+        };
+
         const inventoryData: any[] = [];
         logger.info('Starting to process the CSV file');
 
-        logger.info('Filters applied:', filters);
+        s3.getObject(params, (err, data) => {
+            if (err) {
+                logger.error('Error fetching CSV file from S3:', err);
+                return next(err);
+            }
 
-        createReadStream(filePath)
-            .pipe(csvParser())
-            .on('data', (row) => {
-                logger.debug('Processing row:', row); 
+            const csvStream = csvParser();
+            const csvBuffer = data.Body; 
 
-                let match = true;
+            require('streamifier').createReadStream(csvBuffer)
+                .pipe(csvStream)
+                .on('data', (row: any) => {
+                    logger.debug('Processing row:', row);
 
-                for (const key in filters) {
-                    if (filters[key] && row[key] !== filters[key]) {
-                        logger.debug(`Filter mismatch for ${key}: expected ${filters[key]}, but got ${row[key]}`);
-                        match = false;
-                        break;
+                    let match = true;
+                    for (const key in filters) {
+                        if (filters[key] && row[key] !== filters[key]) {
+                            logger.debug(`Filter mismatch for ${key}: expected ${filters[key]}, but got ${row[key]}`);
+                            match = false;
+                            break;
+                        }
                     }
-                }
 
-                if (match) {
-                    inventoryData.push(row);
-                    logger.info('Row matched filters:', row); 
-                }
-            })
-            .on('end', () => {
-                logger.info('CSV file processing finished');
-                res.json(inventoryData);
-            })
-            .on('error', (error) => {
-                logger.error('Error reading CSV file:', error);  
-                next(error);
-            });
+                    if (match) {
+                        inventoryData.push(row);
+                        logger.info('Row matched filters:', row);
+                    }
+                })
+                .on('end', () => {
+                    logger.info('CSV file processing finished');
+                    res.json(inventoryData);
+                })
+                .on('error', (error : any) => {
+                    logger.error('Error processing CSV data:', error);
+                    next(error);
+                });
+        });
     } catch (error) {
-        logger.error('Error in getInventoryDatas:', error);  
+        logger.error('Error in getInventoryDatas:', error);
         next(error);
     }
 };
