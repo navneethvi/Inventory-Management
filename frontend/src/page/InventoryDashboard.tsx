@@ -25,14 +25,7 @@ import {
 
 type FilterType = "state" | "duration";
 
-interface HistoryLogRow {
-  date: string;
-  newItems: number;
-  newTotalMSRP: string; // Assuming this is a string formatted as currency
-  newAverageMSRP: string; // Same as above
-  usdTotalMSRP: string; // Same as above
-  usdAverageMSRP: string; // Same as above
-}
+
 import { fetchInventory } from "../feature/redux/inventory/inventorySlice";
 import { useDispatch, useSelector } from "react-redux";
 import { AppDispatch } from "../feature/redux/store";
@@ -42,7 +35,7 @@ import FilterListIcon from '@mui/icons-material/FilterList';
 import { RootState } from "../feature/redux/store";
 export default function InventoryDashboard() {
   const [isFilterOpen, setIsFilterOpen] = useState(false);
-  const [page, setPage] = useState(0); // Current page
+  const [page, setPage] = useState(0); 
   const [rowsPerPage, setRowsPerPage] = useState(6);
 
   const {inventory} = useSelector((state: RootState)=> state.inventory)
@@ -53,10 +46,10 @@ export default function InventoryDashboard() {
   const dispatch: AppDispatch = useDispatch()
 
   const labels = ['Jan 11', 'Jan 21', 'Jan 31', 'Feb 10', 'Feb 20', 'Mar 02', 'Mar 12', 'Mar 22', 'Apr 01', 'Apr 11', 'Apr 21', 'May 01'];
-  const data = inventory;
-  const averageMSRPData = [20000, 25000, 21000, 22000, 23000, 21000, 24000, 25000, 26000, 27000, 28000, 29000];
-  const inventoryCount = inventory.length;
+  // const averageMSRPData = inventory.map(item => item.price);
+  // const inventoryCount = filteredInventory.length;
 
+  //! need to do the calculations and all to display proper datas
 
   const prices = inventory.map(item => parseInt(item.price.split(' ')[0], 10));
 
@@ -96,7 +89,7 @@ export default function InventoryDashboard() {
 
   const handleApplyFilters = () => {
     console.log("Applied Filters:", selectedFilters);
-    dispatch(fetchInventory(selectedFilters)); // Fetch inventory with filters
+    dispatch(fetchInventory(selectedFilters)); 
   };
 
   useEffect(() => {
@@ -107,23 +100,33 @@ export default function InventoryDashboard() {
     event: React.ChangeEvent<HTMLInputElement>
   ) => {
     setRowsPerPage(parseInt(event.target.value, 10));
-    setPage(0); // Reset to first page when rows per page changes
+    setPage(0); 
   };
 
   const handleChangePage = (newPage: number) => {
     setPage(newPage);
   };
 
-  const historyLogData: HistoryLogRow[] = [
-    {
-      date: 'Dec 15, 23',
-      newItems: 247,
-      newTotalMSRP: '$13,023.46',
-      newAverageMSRP: '$52.88',
-      usdTotalMSRP: '$11,743.65',
-      usdAverageMSRP: '$47.40',
-    },
-    // Additional rows...
+  
+  const historyLogData = inventory.map((item) => ({
+    date: item.timestamp, 
+    newItems: 1,
+    newTotalMSRP: item.price,
+    newAverageMSRP: item.price,
+    usdTotalMSRP: item.price, 
+    usdAverageMSRP: item.price,
+  }))
+  
+
+  const cardData = [
+    { value: inventory.length ? inventory.length : "379", newInfo: "# New Units" },
+    { value: "$13,023.46", newInfo: "New MSRP" },
+    { value: "450", newInfo: "New Avg. MSRP" },
+    { value: "$15,600.00", newInfo: "# Used Units" },
+    { value: "312", newInfo: "Used MSRP" },
+    { value: "$10,100.75", newInfo: "Used Avg. MSRP" },
+    { value: "500", newInfo: "# CPO Units" },
+    { value: "$20,000.00", newInfo: "CPO MSRP" },
   ];
 
   return (
@@ -138,7 +141,6 @@ export default function InventoryDashboard() {
             padding: "10px 20px",
           }}
         >
-          {/* Left Section */}
           <Box display="flex" alignItems="center">
             <Typography variant="h5" fontWeight="large" color="white" marginRight="10px">
               Admin Console
@@ -148,7 +150,6 @@ export default function InventoryDashboard() {
             </span>
           </Box>
 
-          {/* Right Section */}
           <Box display="flex" alignItems="center" gap={2}>
             <Button
               sx={{
@@ -173,7 +174,6 @@ export default function InventoryDashboard() {
               </Typography>
             </Button>
 
-            {/* Profile Button */}
             <Button className="flex items-center gap-2 bg-gray-800 text-white rounded-lg px-4 py-2 border">
               <Avatar
                 src="/default-avatar.jpg"
@@ -187,24 +187,20 @@ export default function InventoryDashboard() {
 
         <Box bgcolor="gray.700" color="white" p={2}>
           <Grid container alignItems="center" justifyContent="space-between">
-            {/* Left side: Inventory */}
             <Grid item>
               <Typography variant="h5" fontWeight="bold" color="black">
                 Inventory
               </Typography>
             </Grid>
 
-            {/* Right side: Select Dealer, Field, and Filter Button */}
             <Grid item>
               <Grid container spacing={2} alignItems="center" justifyContent="flex-end">
-                {/* Select Dealer */}
                 <Grid item>
                   <Typography variant="body2" color="textSecondary">
                     Select Dealer
                   </Typography>
                 </Grid>
 
-                {/* Dealer Dropdown */}
                 <Grid item>
                   <FormControl variant="outlined" size="small">
                     <Select
@@ -222,16 +218,15 @@ export default function InventoryDashboard() {
                   </FormControl>
                 </Grid>
 
-                {/* Filter by Data Button */}
                 <Grid item>
                 <Button
-                    startIcon={<FilterListIcon sx={{ color: 'orange' }} />} // Orange icon
+                    startIcon={<FilterListIcon sx={{ color: 'orange' }} />} 
                     color="primary"
                     sx={{
                     display: 'flex',
                     alignItems: 'center',
                     gap: 1,
-                    textTransform: 'none', // To keep text from being uppercase
+                    textTransform: 'none', 
                  }}
                  onClick={()=>setIsFilterOpen(true)}
 >
@@ -244,34 +239,30 @@ export default function InventoryDashboard() {
           </Grid>
         </Box>
 
-        {/* Inventory Cards */}
         <Grid container spacing={3} mb={3}>
-          {Array.from({ length: 8 }).map((_, index) => (
-            <Grid item xs={3} key={index}>
-              <Card>
-                <CardContent>
-                  <Typography variant="body2" color="textSecondary">
-                    {index % 2 === 0 ? "Total Items" : "Total Value"}
-                  </Typography>
-                  <Typography variant="h5" fontWeight="bold">
-                    {index % 2 === 0 ? "379" : "$13,023.46"}
-                  </Typography>
-                  <Typography variant="caption" color="orange">
-                    {index % 2 === 0 ? "4 New Items" : "New $550K"}
-                  </Typography>
-                </CardContent>
-              </Card>
-            </Grid>
-          ))}
-        </Grid>
+  {cardData.map((data, index) => (
+    <Grid item xs={3} key={index}>
+      <Card>
+        <CardContent>
+          <Typography variant="h5" fontWeight="bold">
+            {data.value}
+          </Typography>
+          <Typography variant="caption" color="orange">
+            {data.newInfo}
+          </Typography>
+        </CardContent>
+      </Card>
+    </Grid>
+  ))}
+</Grid>
 
-        {/* Charts */}
+
         <Grid container spacing={3} mb={3}>
           <Grid item xs={12}>
             <Card>
               <CardContent>
                 <Box display="flex" alignItems="center" mb={2}>
-                  <Typography variant="h5" fontWeight="large" color="black" marginRight="10px">Inventory Graph</Typography>
+                  <Typography variant="h5" fontWeight="large" color="black" marginRight="10px">Inventory Count</Typography>
                   <Box display="flex" gap={1}>
                     {["New", "Used", "CPO"].map((filter) => (
                       <Button
@@ -289,13 +280,12 @@ export default function InventoryDashboard() {
                     ))}
                   </Box>
                 </Box>
-                <BarChart labels={labels} data={averageMSRPData} />
+                <BarChart labels={labels} data={prices} />
               </CardContent>
             </Card>
           </Grid>
         </Grid>
 
-        {/* Average MSRP Chart */}
         <Grid container spacing={3} mb={3}>
           <Grid item xs={12}>
             <Card>
@@ -325,7 +315,6 @@ export default function InventoryDashboard() {
           </Grid>
         </Grid>
 
-        {/* History Log Table */}
         <Grid container mb={3}>
           <Grid item xs={12}>
             <Card>
@@ -350,14 +339,14 @@ export default function InventoryDashboard() {
                   <Table>
                     <TableHead>
                       <TableRow>
-                        <TableCell>Date</TableCell>
-                        <TableCell>New Inventory</TableCell>
-                        <TableCell>New Total MSRP</TableCell>
-                        <TableCell>New Average MSRP</TableCell>
-                        <TableCell>USED Inventory</TableCell>
-                        <TableCell>USED Total MSRP</TableCell>
-                        <TableCell>USED Average MSRP</TableCell>
-                        <TableCell>USED Average MSRP</TableCell>  
+                        <TableCell>DATE</TableCell>
+                        <TableCell>NEW INVENTORY</TableCell>
+                        <TableCell>NEW TOTAL MSRP</TableCell>
+                        <TableCell>NEW AVERAGE MSRP</TableCell>
+                        <TableCell>USED INVENTORY</TableCell>
+                        <TableCell>USED INVENTORY</TableCell>
+                        <TableCell>USED TOTAL MSRP</TableCell>
+                        <TableCell>USED AVERAGE MSRP</TableCell>  
                       </TableRow>
                     </TableHead>
                     <TableBody>
@@ -365,10 +354,12 @@ export default function InventoryDashboard() {
                         <TableRow key={index}>
                           <TableCell>{row.date}</TableCell>
                           <TableCell>{row.newItems}</TableCell>
-                          <TableCell>{row.newTotalMSRP}</TableCell>
-                          <TableCell>{row.newAverageMSRP}</TableCell>
-                          <TableCell>{row.usdTotalMSRP}</TableCell>
-                          <TableCell>{row.usdAverageMSRP}</TableCell>
+                          <TableCell>${row.newTotalMSRP}</TableCell>
+                          <TableCell>${row.newAverageMSRP}</TableCell>
+                          <TableCell>{row.newItems}</TableCell>
+                          <TableCell>${row.usdTotalMSRP}</TableCell>
+                          <TableCell>${row.usdAverageMSRP}</TableCell>
+                          <TableCell>${row.newAverageMSRP}</TableCell>
                         </TableRow>
                       ))}
                     </TableBody>
