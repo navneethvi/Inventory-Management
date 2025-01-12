@@ -7,10 +7,9 @@ const port = 3000;
 
 const corsOptions = {
   origin: [
-    'https://inventory-ec0e4zbvc-navneethvis-projects.vercel.app',
     'https://inventory-frontend-wheat.vercel.app',
-  ],  methods: ['GET', 'POST', 'PUT', 'DELETE'],
-  allowedHeaders: ['Content-Type', 'Authorization'],  
+    'https://inventory-ec0e4zbvc-navneethvis-projects.vercel.app',
+  ],  methods: ['GET'],
 };
 
 app.use(cors(corsOptions))
