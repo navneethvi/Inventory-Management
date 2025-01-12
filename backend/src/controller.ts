@@ -36,7 +36,7 @@ const getInventoryDatas = async (req: Request, res: Response, next: NextFunction
 
                 if (match) {
                     inventoryData.push(row);
-                    logger.info('Row matched filters:', row);  // Log matched rows
+                    logger.info('Row matched filters:', row); 
                 }
             })
             .on('end', () => {
