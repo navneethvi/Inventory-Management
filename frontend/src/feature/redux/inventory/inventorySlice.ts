@@ -32,7 +32,7 @@ export const fetchInventory = createAsyncThunk(
   'inventory/fetchInventory',
   async (filters: Filters) => {
     try {
-      const response = await axios.get('https://inventory-backend-two-virid.vercel.app//api/inventory' , {
+      const response = await axios.get('https://inventory-backend-two-virid.vercel.app/api/inventory' , {
         params: filters,
       });
       console.log("Res==?", response.data);
