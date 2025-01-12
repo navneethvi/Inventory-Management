@@ -19,14 +19,11 @@ import {
   MenuItem,
   Avatar,
   TablePagination,
-  Checkbox as MuiCheckbox, 
+  Checkbox as MuiCheckbox,
   FormControlLabel,
 } from "@mui/material";
 
-import { dummyInventory } from "../datas/dummy";
-
-type FilterType = "state" | "duration";
-
+type FilterType = "make" | "duration";
 
 import { fetchInventory } from "../feature/redux/inventory/inventorySlice";
 import { useDispatch, useSelector } from "react-redux";
@@ -35,47 +32,70 @@ import { BarChart } from "../components/BarChart";
 import SupportIcon from '@mui/icons-material/Support';
 import FilterListIcon from '@mui/icons-material/FilterList';
 import { RootState } from "../feature/redux/store";
+
 export default function InventoryDashboard() {
   const [isFilterOpen, setIsFilterOpen] = useState(false);
-  const [page, setPage] = useState(0); 
+  const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(6);
+  const [countChartFilter, setCountChartFilter] = useState("")
+  const [avgMsrpFilter, setAvgMsrpFilter] = useState("")
 
-  const {inventory} = useSelector((state: RootState)=> state.inventory)
-
-  console.log("inventory==?", inventory);
-  
+  const [selectedFilters, setSelectedFilters] = useState<{
+    make: string[];
+    duration: string[];
+  }>({
+    make: [],
+    duration: [],
+  });
 
   const dispatch: AppDispatch = useDispatch()
 
-  const labels = ['Jan 11', 'Jan 21', 'Jan 31', 'Feb 10', 'Feb 20', 'Mar 02', 'Mar 12', 'Mar 22', 'Apr 01', 'Apr 11', 'Apr 21', 'May 01'];
-  // const averageMSRPData = inventory.map(item => item.price);
-  // const inventoryCount = filteredInventory.length;
+  const { inventory } = useSelector((state: RootState) => state.inventory)
 
-  //! need to do the calculations and all to display proper datas
+  useEffect(() => {
+    dispatch(fetchInventory(selectedFilters));
+  }, [selectedFilters, dispatch]);
+
+  const labels = [
+    'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'
+  ];
+
+  const formatMonth = (timestamp: string) => {
+    const date = new Date(timestamp);
+    const options: Intl.DateTimeFormatOptions = { month: 'short' };
+    return date.toLocaleDateString('en-US', options);
+  };
+
+  const counts = labels.map((label) => {
+    const filteredData = inventory.filter(item => {
+      const itemMonth = formatMonth(item.timestamp);
+      const matchesMonth = itemMonth === label;
+
+      const matchesCategory = countChartFilter ? item.condition === countChartFilter : true;
+
+      return matchesMonth && matchesCategory;
+    });
+
+    return filteredData.length;
+  });
 
 
-  const prices = dummyInventory.map(item => parseInt(item.price.split(' ')[0], 10));
+  const msrp = labels.map((label) => {
+    const filteredData = inventory.filter(item => {
+      const itemMonth = formatMonth(item.timestamp);
+      const matchesMonth = itemMonth === label;
+
+      const matchesCategory = avgMsrpFilter ? item.condition === avgMsrpFilter : true;
+
+      return matchesMonth && matchesCategory;
+    });
+
+    return filteredData.length;
+  });
 
 
   const toggleFilter = () => {
     setIsFilterOpen(!isFilterOpen);
-  };
-
-  const [selectedFilter, setSelectedFilter] = React.useState<string>("");
-
-  const [selectedFilters, setSelectedFilters] = useState<{
-    state: string[];
-    duration: string[];
-  }>({
-    state: [],
-    duration: [],
-  });
-
-  console.log("selectedFilters==?", selectedFilters);
-  
-
-  const handleFilterClick = (filter: string) => {
-    setSelectedFilter(filter);
   };
 
   const handleCheckboxChange = (filterType: FilterType, filterId: string) => {
@@ -92,34 +112,28 @@ export default function InventoryDashboard() {
 
   const handleApplyFilters = () => {
     console.log("Applied Filters:", selectedFilters);
-    dispatch(fetchInventory(selectedFilters)); 
-  };
-
-  useEffect(() => {
     dispatch(fetchInventory(selectedFilters));
-  }, [selectedFilters, dispatch]);
+  };
 
   const handleChangeRowsPerPage = (
     event: React.ChangeEvent<HTMLInputElement>
   ) => {
     setRowsPerPage(parseInt(event.target.value, 10));
-    setPage(0); 
+    setPage(0);
   };
 
   const handleChangePage = (newPage: number) => {
     setPage(newPage);
   };
 
-  // ! My backend is not deployed so im giving dumy datas
-  const historyLogData = dummyInventory.map((item) => ({
-    date: item.timestamp, 
-    newItems: 1,
-    newTotalMSRP: item.price,
-    newAverageMSRP: item.price,
-    usdTotalMSRP: item.price, 
-    usdAverageMSRP: item.price,
-  }))
-  
+  const handleCountChartFilterClick = (filter: string) => {
+    setCountChartFilter(filter)
+  }
+
+  const handleMsrpChartFilterClick = (filter: string) => {
+    setAvgMsrpFilter(filter)
+
+  }
 
   const cardData = [
     { value: inventory.length ? inventory.length : "379", newInfo: "# New Units" },
@@ -132,6 +146,15 @@ export default function InventoryDashboard() {
     { value: "$20,000.00", newInfo: "CPO MSRP" },
   ];
 
+  const historyLogData = inventory.map((item) => ({
+    date: item.timestamp,
+    newItems: item.custom_label_0,
+    newTotalMSRP: item.price,
+    newAverageMSRP: item.price,
+    usdTotalMSRP: item.price,
+    usdAverageMSRP: item.price,
+  }))
+
   return (
     <Box display="flex" minHeight="100vh" bgcolor="#f7f7f7">
       <Box flex="1" p={0}>
@@ -140,12 +163,12 @@ export default function InventoryDashboard() {
             display: "flex",
             justifyContent: "space-between",
             alignItems: "center",
-            backgroundColor: "#1F1F1F", 
-            padding: "10px 20px",
+            backgroundColor: "#1F1F1F",
+            padding: "10px 40px",
           }}
         >
           <Box display="flex" alignItems="center">
-            <Typography variant="h5" fontWeight="large" color="white" marginRight="10px">
+            <Typography variant="h5" className="text-lg" color="white" marginRight="10px">
               Admin Console
             </Typography>
             <span className="inline-flex items-center bg-gray-200 text-black font-medium text-xs px-5 py-1.5 rounded-full">
@@ -162,13 +185,13 @@ export default function InventoryDashboard() {
                 px: 2,
                 py: 1,
                 color: "#4A4A4A",
-                textTransform: "none", 
+                textTransform: "none",
               }}
             >
               <SupportIcon
                 sx={{
-                  width: 24, 
-                  height: 24, 
+                  width: 24,
+                  height: 24,
                   color: 'orange'
                 }}
               />
@@ -177,18 +200,23 @@ export default function InventoryDashboard() {
               </Typography>
             </Button>
 
-            <Button className="flex items-center gap-2 bg-gray-800 text-white rounded-lg px-4 py-2 border">
+            <Button
+              className="flex items-center gap-2 bg-gray-800 text-white rounded-lg px-3 py-1.5 border border-gray-600 hover:bg-gray-700 transition duration-200"
+            >
               <Avatar
-                src="/default-avatar.jpg"
+                src="https://static.vecteezy.com/system/resources/thumbnails/005/129/844/small/profile-user-icon-isolated-on-white-background-eps10-free-vector.jpg"
                 alt="Profile Picture"
-                className="w-4 h-4" 
+                sx={{ width: 26, height: 26 }}
               />
-              <span className="text-sm font-medium">Navaneeth V</span>
+              <span className="text-sm font-medium text-white truncate">Navaneeth V</span>
             </Button>
+
+
+
           </Box>
         </header>
 
-        <Box bgcolor="gray.700" color="white" p={2}>
+        <Box bgcolor="gray.700" color="white" p={5} boxShadow="0px 4px 10px rgba(0, 0, 0, 0.1)">
           <Grid container alignItems="center" justifyContent="space-between">
             <Grid item>
               <Typography variant="h5" fontWeight="bold" color="black">
@@ -222,60 +250,58 @@ export default function InventoryDashboard() {
                 </Grid>
 
                 <Grid item>
-                <Button
-                    startIcon={<FilterListIcon sx={{ color: 'orange' }} />} 
+                  <Button
+                    startIcon={<FilterListIcon sx={{ color: 'orange' }} />}
                     color="primary"
                     sx={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: 1,
-                    textTransform: 'none', 
-                 }}
-                 onClick={()=>setIsFilterOpen(true)}
->
-  Filter by Data
-</Button>
-
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: 1,
+                      textTransform: 'none',
+                    }}
+                    onClick={() => setIsFilterOpen(true)}
+                  >
+                    Filter by Data
+                  </Button>
                 </Grid>
               </Grid>
             </Grid>
           </Grid>
         </Box>
 
-        <Grid container spacing={3} mb={3}>
-  {cardData.map((data, index) => (
-    <Grid item xs={3} key={index}>
-      <Card>
-        <CardContent>
-          <Typography variant="h5" fontWeight="bold">
-            {data.value}
-          </Typography>
-          <Typography variant="caption" color="orange">
-            {data.newInfo}
-          </Typography>
-        </CardContent>
-      </Card>
-    </Grid>
-  ))}
-</Grid>
+        <Grid container spacing={1} mb={1} p={5}>
+          {cardData.map((data, index) => (
+            <Grid item xs={1.5} key={index}>
+              <Card elevation={1}>
+                <CardContent>
+                  <Typography variant="h5" fontWeight="bold">
+                    {data.value}
+                  </Typography>
+                  <Typography variant="caption" color="orange">
+                    {data.newInfo}
+                  </Typography>
+                </CardContent>
+              </Card>
+            </Grid>
+          ))}
+        </Grid>
 
-
-        <Grid container spacing={3} mb={3}>
+        <Grid container spacing={3} mb={3} p={5}>
           <Grid item xs={12}>
             <Card>
               <CardContent>
                 <Box display="flex" alignItems="center" mb={2}>
                   <Typography variant="h5" fontWeight="large" color="black" marginRight="10px">Inventory Count</Typography>
                   <Box display="flex" gap={1}>
-                    {["New", "Used", "CPO"].map((filter) => (
+                    {["new", "used", "cpo"].map((filter) => (
                       <Button
                         key={filter}
                         variant="outlined"
-                        onClick={() => handleFilterClick(filter)}
+                        onClick={() => handleCountChartFilterClick(filter)}
                         style={{
-                          backgroundColor: selectedFilter === filter ? "orange" : "white",
-                          color: selectedFilter === filter ? "#fff" : "orange",
-                          borderColor: selectedFilter === filter ? "orange" : "orange",
+                          backgroundColor: countChartFilter === filter ? "orange" : "white",
+                          color: countChartFilter === filter ? "#fff" : "orange",
+                          borderColor: countChartFilter === filter ? "orange" : "orange",
                         }}
                       >
                         {filter}
@@ -283,28 +309,28 @@ export default function InventoryDashboard() {
                     ))}
                   </Box>
                 </Box>
-                <BarChart labels={labels} data={prices} />
+                <BarChart labels={labels} data={counts} />
               </CardContent>
             </Card>
           </Grid>
         </Grid>
 
-        <Grid container spacing={3} mb={3}>
+        <Grid container spacing={3} mb={3} p={5}>
           <Grid item xs={12}>
             <Card>
               <CardContent>
                 <Box display="flex" alignItems="center" mb={2}>
                   <Typography variant="h5" fontWeight="large" color="black" marginRight="10px">Average MSRP in USD</Typography>
                   <Box display="flex" gap={1}>
-                    {["New", "Used", "CPO"].map((filter) => (
+                    {["new", "used", "cpo"].map((filter) => (
                       <Button
                         key={filter}
                         variant="outlined"
-                        onClick={() => handleFilterClick(filter)}
+                        onClick={() => handleMsrpChartFilterClick(filter)}
                         style={{
-                          backgroundColor: selectedFilter === filter ? "orange" : "white",
-                          color: selectedFilter === filter ? "#fff" : "orange",
-                          borderColor: selectedFilter === filter ? "orange" : "orange",
+                          backgroundColor: avgMsrpFilter === filter ? "orange" : "white",
+                          color: avgMsrpFilter === filter ? "#fff" : "orange",
+                          borderColor: avgMsrpFilter === filter ? "orange" : "orange",
                         }}
                       >
                         {filter}
@@ -312,13 +338,13 @@ export default function InventoryDashboard() {
                     ))}
                   </Box>
                 </Box>
-                <BarChart labels={labels} data={prices} />
+                <BarChart labels={labels} data={msrp} />
               </CardContent>
             </Card>
           </Grid>
         </Grid>
 
-        <Grid container mb={3}>
+        <Grid container mb={3} p={5}>
           <Grid item xs={12}>
             <Card>
               <CardContent>
@@ -332,7 +358,6 @@ export default function InventoryDashboard() {
                     </Button>
                     <Drawer anchor="right" open={isFilterOpen} onClose={toggleFilter}>
                       <div style={{ width: 250, padding: 20 }}>
-                        {/* Filters can be added here */}
                       </div>
                     </Drawer>
                   </Box>
@@ -349,7 +374,7 @@ export default function InventoryDashboard() {
                         <TableCell>USED INVENTORY</TableCell>
                         <TableCell>USED INVENTORY</TableCell>
                         <TableCell>USED TOTAL MSRP</TableCell>
-                        <TableCell>USED AVERAGE MSRP</TableCell>  
+                        <TableCell>USED AVERAGE MSRP</TableCell>
                       </TableRow>
                     </TableHead>
                     <TableBody>
@@ -375,7 +400,7 @@ export default function InventoryDashboard() {
                   count={historyLogData.length}
                   rowsPerPage={rowsPerPage}
                   page={page}
-                  onPageChange={()=>handleChangePage}
+                  onPageChange={() => handleChangePage}
                   onRowsPerPageChange={handleChangeRowsPerPage}
                 />
               </CardContent>
@@ -385,112 +410,103 @@ export default function InventoryDashboard() {
       </Box>
 
       {isFilterOpen && (
-    <Drawer anchor="right" open={isFilterOpen} onClose={toggleFilter}>
-    <div className="w-[390px] p-6">
-      <Typography variant="h6" fontWeight="bold" color="black" marginBottom="10px">
-        Filter By Data
-      </Typography>
-  
-      {/* State Filters */}
-      <div className="mb-6">
-        <h3 className="text-sm font-medium mb-3 text-black">MAKE</h3>
-        <div className="space-y-1">
-        <FormControlLabel
-  control={
-    <MuiCheckbox
-      id="sold"
-      checked={selectedFilters.state.includes('sold')}
-      onChange={() => handleCheckboxChange('state', 'sold')}
-    />
-  }
-  label="Sold"
-  style={{ display: 'flex', alignItems: 'center', marginBottom: '12px' }}
-/>
-<FormControlLabel
-  control={
-    <MuiCheckbox
-      id="pending"
-      checked={selectedFilters.state.includes('pending')}
-      onChange={() => handleCheckboxChange('state', 'pending')}
-    />
-  }
-  label="Pending"
-  style={{ display: 'flex', alignItems: 'center', marginBottom: '12px' }}
-/>
-<FormControlLabel
-  control={
-    <MuiCheckbox
-      id="store"
-      checked={selectedFilters.state.includes('store')}
-      onChange={() => handleCheckboxChange('state', 'store')}
-    />
-  }
-  label="Store"
-  style={{ display: 'flex', alignItems: 'center', marginBottom: '12px' }}
-/>
+        <Drawer anchor="right" open={isFilterOpen} onClose={toggleFilter}>
+          <div className="w-[390px] p-6">
+            <Typography variant="h6" fontWeight="bold" color="black" marginBottom="10px">
+              Filter By Data
+            </Typography>
 
-        </div>
-      </div>
-  
-      {/* Duration Filters */}
-      <div className="mb-6">
-        <h3 className="text-sm font-medium mb-3">DURATION</h3>
-        <div className="space-y-1">
-          <FormControlLabel
-            control={
-              <MuiCheckbox
-                id="last-month"
-                checked={selectedFilters.duration.includes('last-month')}
-                onChange={() => handleCheckboxChange('duration', 'last-month')}
-              />
-            }
-            label="Last Month"
-            style={{ display: 'flex', alignItems: 'center', marginBottom: '12px' }}
+            <div className="mb-6">
+              <h3 className="text-sm font-medium mb-3 text-black">MAKE</h3>
+              <div className="space-y-1">
+                <FormControlLabel
+                  control={
+                    <MuiCheckbox
+                      id="sold"
+                      checked={selectedFilters.make.includes('jeep')}
+                      onChange={() => handleCheckboxChange('make', 'jeep')}
+                    />
+                  }
+                  label="Jeep"
+                  style={{ display: 'flex', alignItems: 'center', marginBottom: '12px' }}
+                />
+                <FormControlLabel
+                  control={
+                    <MuiCheckbox
+                      id="pending"
+                      checked={selectedFilters.make.includes('Chevrolet')}
+                      onChange={() => handleCheckboxChange('make', 'Chevrolet')}
+                    />
+                  }
+                  label="Chevrolet"
+                  style={{ display: 'flex', alignItems: 'center', marginBottom: '12px' }}
+                />
+                <FormControlLabel
+                  control={
+                    <MuiCheckbox
+                      id="store"
+                      checked={selectedFilters.make.includes('GMC')}
+                      onChange={() => handleCheckboxChange('make', 'GMC')}
+                    />
+                  }
+                  label="GMC"
+                  style={{ display: 'flex', alignItems: 'center', marginBottom: '12px' }}
+                />
 
-          />
-          <FormControlLabel
-            control={
-              <MuiCheckbox
-                id="this-month"
-                checked={selectedFilters.duration.includes('this-month')}
-                onChange={() => handleCheckboxChange('duration', 'this-month')}
-              />
-            }
-            label="This Month"
-            style={{ display: 'flex', alignItems: 'center', marginBottom: '12px' }}
+              </div>
+            </div>
+            <div className="mb-6">
+              <h3 className="text-sm font-medium mb-3">DURATION</h3>
+              <div className="space-y-1">
+                <FormControlLabel
+                  control={
+                    <MuiCheckbox
+                      id="last-month"
+                      checked={selectedFilters.duration.includes('last-month')}
+                      onChange={() => handleCheckboxChange('duration', 'last-month')}
+                    />
+                  }
+                  label="Last Month"
+                  style={{ display: 'flex', alignItems: 'center', marginBottom: '12px' }}
 
-          />
-          <FormControlLabel
-            control={
-              <MuiCheckbox
-                id="last-3-months"
-                checked={selectedFilters.duration.includes('last-3-months')}
-                onChange={() => handleCheckboxChange('duration', 'last-3-months')}
-              />
-            }
-            label="Last 3 Months"
-            style={{ display: 'flex', alignItems: 'center', marginBottom: '12px' }}
+                />
+                <FormControlLabel
+                  control={
+                    <MuiCheckbox
+                      id="this-month"
+                      checked={selectedFilters.duration.includes('this-month')}
+                      onChange={() => handleCheckboxChange('duration', 'this-month')}
+                    />
+                  }
+                  label="This Month"
+                  style={{ display: 'flex', alignItems: 'center', marginBottom: '12px' }}
 
-          />
-        </div>
-      </div>
-  
-      {/* Apply Button */}
-      <Button
-        onClick={handleApplyFilters}
-        variant="contained"
-        color="primary"
-        className="w-full mt-6"
-      >
-        Apply Filters
-      </Button>
-    </div>
-  </Drawer>
-  
-  
+                />
+                <FormControlLabel
+                  control={
+                    <MuiCheckbox
+                      id="last-3-months"
+                      checked={selectedFilters.duration.includes('last-3-months')}
+                      onChange={() => handleCheckboxChange('duration', 'last-3-months')}
+                    />
+                  }
+                  label="Last 3 Months"
+                  style={{ display: 'flex', alignItems: 'center', marginBottom: '12px' }}
+
+                />
+              </div>
+            </div>
+            <Button
+              onClick={handleApplyFilters}
+              variant="contained"
+              color="primary"
+              className="w-full mt-6"
+            >
+              Apply Filters
+            </Button>
+          </div>
+        </Drawer>
       )}
     </Box>
-
-    
   );
 }

@@ -25,14 +25,14 @@ const initialState: InventoryState = {
 };
 
 type Filters = {
-  [key: string]: string | number | string[];
+  make: string[], duration: string[]
 };
 
 export const fetchInventory = createAsyncThunk(
   'inventory/fetchInventory',
   async (filters: Filters) => {
     try {
-      const response = await axios.get(  'https://inventory-frontend-wheat.vercel.app/api/inventory' , {
+      const response = await axios.get(  'http://localhost:3000/api/inventory' , {
         params: filters,
       });
       console.log("Res==?", response.data);
