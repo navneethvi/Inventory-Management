@@ -4,7 +4,6 @@ import winston from "winston";
 import { Readable } from "stream";
 import { Request, Response, NextFunction } from "express";
 
-// Initialize S3 Client
 const s3Client = new S3Client({
     region: process.env.AWS_S3_REGION,
     credentials: {
@@ -13,7 +12,6 @@ const s3Client = new S3Client({
     },
 });
 
-// Utility function to convert stream to buffer
 export const streamToBuffer = (stream: Readable): Promise<Buffer> => {
     return new Promise((resolve, reject) => {
         const chunks: Buffer[] = [];
@@ -23,7 +21,6 @@ export const streamToBuffer = (stream: Readable): Promise<Buffer> => {
     });
 };
 
-// Set up Winston logger
 const logger = winston.createLogger({
     level: "info",
     transports: [
@@ -31,7 +28,6 @@ const logger = winston.createLogger({
     ],
 });
 
-// Controller to fetch and filter inventory data
 const getInventoryDatas = async (req: Request, res: Response, next: NextFunction) => {
     try {
         const filters = req.query;
@@ -53,17 +49,14 @@ const getInventoryDatas = async (req: Request, res: Response, next: NextFunction
             return next(error);
         }
 
-        // Function to process each row of the CSV
         const processRow = (row: any) => {
             logger.debug("Processing row:", row);
 
             let match = true;
 
-            // Apply filters
             for (const key in filters) {
                 const filterValues = Array.isArray(filters[key]) ? filters[key] : [filters[key]];
                 
-                // Check if filter is present and if it matches any of the filter values
                 if (key !== "duration" && filterValues.length > 0 && !filterValues.some(value => row[key]?.toLowerCase() === String(value).toLowerCase())) {
                     logger.debug(`Filter mismatch for ${key}: expected one of ${filterValues}, but got ${row[key]}`);
                     match = false;
@@ -72,7 +65,6 @@ const getInventoryDatas = async (req: Request, res: Response, next: NextFunction
             }
 
             if (match && filters.duration) {
-                // Ensure filters.duration is an array
                 const durations = Array.isArray(filters.duration) ? filters.duration : [filters.duration];
                 const rowDate = new Date(row.timestamp);
                 const now = new Date();
@@ -87,7 +79,7 @@ const getInventoryDatas = async (req: Request, res: Response, next: NextFunction
                 } else if (durations.includes("last-3-months")) {
                     startDate = new Date(now.getFullYear(), now.getMonth() - 3, 1);
                 } else {
-                    startDate = new Date(0); // Defaults to the very beginning of time
+                    startDate = new Date(0);
                 }
             
                 if (rowDate < startDate || rowDate > endDate) {
@@ -101,7 +93,6 @@ const getInventoryDatas = async (req: Request, res: Response, next: NextFunction
             }
         };
 
-        // Handle CSV stream
         const handleCsvStream = (stream: Readable) => {
             stream
                 .pipe(csvParser())
