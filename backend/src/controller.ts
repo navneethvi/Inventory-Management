@@ -13,7 +13,6 @@ const s3Client = new S3Client({
     },
 });
 
-// Utility function to convert a stream to a buffer
 export const streamToBuffer = (stream: Readable): Promise<Buffer> => {
     return new Promise((resolve, reject) => {
         const chunks: Buffer[] = [];
@@ -23,7 +22,6 @@ export const streamToBuffer = (stream: Readable): Promise<Buffer> => {
     });
 };
 
-// Logger configuration
 const logger = winston.createLogger({
     level: 'info',
     transports: [
@@ -46,16 +44,13 @@ const getInventoryDatas = async (req: Request, res: Response, next: NextFunction
 
         const { Body } = await s3Client.send(new GetObjectCommand(params));
 
-        // Ensure the Body exists and is a readable stream
         if (!Body) {
             const error = new Error('No data returned from S3.');
             logger.error(error.message);
             return next(error);
         }
 
-        // Check if Body is a Readable stream (if it's a stream, handle it accordingly)
         if (Body instanceof Readable) {
-            // Stream processing
             Body.pipe(csvParser())
                 .on('data', (row: any) => {
                     logger.debug('Processing row:', row);
@@ -83,8 +78,7 @@ const getInventoryDatas = async (req: Request, res: Response, next: NextFunction
                     next(error);
                 });
         } else if (Buffer.isBuffer(Body)) {
-            // If Body is a Buffer, convert it to a stream and then process
-            const bufferStream = Readable.from(Body); // Convert the Buffer to a stream
+            const bufferStream = Readable.from(Body); 
             bufferStream.pipe(csvParser())
                 .on('data', (row: any) => {
                     logger.debug('Processing row:', row);
@@ -112,7 +106,6 @@ const getInventoryDatas = async (req: Request, res: Response, next: NextFunction
                     next(error);
                 });
         } else {
-            // If Body is neither a readable stream nor a buffer, throw an error
             const error = new Error('Received an unexpected Body type.');
             logger.error(error.message);
             return next(error);
