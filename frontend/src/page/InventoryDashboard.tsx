@@ -110,6 +110,9 @@ export default function InventoryDashboard() {
     });
   };
 
+  console.log("heloooooooooooo");
+  
+
   const handleApplyFilters = () => {
     console.log("Applied Filters:", selectedFilters);
     dispatch(fetchInventory(selectedFilters));
