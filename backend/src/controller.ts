@@ -34,6 +34,8 @@ const logger = winston.createLogger({
 const getInventoryDatas = async (req: Request, res: Response, next: NextFunction) => {
     try {
         const filters = req.query;
+        console.log("filters", filters);
+        
         const params = {
             Bucket: 'educore-bucket',
             Key: '2025-01-12T22:59:48.147Z-sample-data-v2.csv', 

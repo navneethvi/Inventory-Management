@@ -155,17 +155,11 @@ export default function InventoryDashboard() {
     0
   );
 
-
-
   const formattedPrice = new Intl.NumberFormat("en-US", { style: "currency", currency: "USD" }).format(totalPrice);
   const formattedAvgMsrp = new Intl.NumberFormat("en-US", { style: "currency", currency: "USD" }).format(avgMsrp);
   const formattedPriceUsed = new Intl.NumberFormat("en-US", { style: "currency", currency: "USD" }).format(totalPriceUsed);
   const formattedAvgMsrpUsed = new Intl.NumberFormat("en-US", { style: "currency", currency: "USD" }).format(avgMsrpUsed);
   const formattedPriceCpo = new Intl.NumberFormat("en-US", { style: "currency", currency: "USD" }).format(totalPriceCpo);
-
-
-
-
 
   const cardData = [
     { value: newInventory.length ? newInventory.length : "0", newInfo: "# New Units" },
