@@ -23,7 +23,7 @@ import {
   FormControlLabel,
 } from "@mui/material";
 
-type FilterType = "make" | "duration";
+type FilterType = "brand" | "duration";
 
 import { fetchInventory } from "../feature/redux/inventory/inventorySlice";
 import { useDispatch, useSelector } from "react-redux";
@@ -41,10 +41,10 @@ export default function InventoryDashboard() {
   const [avgMsrpFilter, setAvgMsrpFilter] = useState("")
 
   const [selectedFilters, setSelectedFilters] = useState<{
-    make: string[];
+    brand: string[];
     duration: string[];
   }>({
-    make: [],
+    brand: [],
     duration: [],
   });
 
@@ -53,8 +53,8 @@ export default function InventoryDashboard() {
   const { inventory } = useSelector((state: RootState) => state.inventory)
 
   useEffect(() => {
-    dispatch(fetchInventory(selectedFilters));
-  }, [selectedFilters, dispatch]);
+    dispatch(fetchInventory({ brand: [], duration: [] })); // Load all data initially
+  }, [dispatch]);
 
   const labels = [
     'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'
@@ -99,10 +99,10 @@ export default function InventoryDashboard() {
   };
 
   const handleCheckboxChange = (filterType: FilterType, filterId: string) => {
-    setSelectedFilters(prevState => {
+    setSelectedFilters((prevState) => {
       const newFilters = { ...prevState };
       if (newFilters[filterType].includes(filterId)) {
-        newFilters[filterType] = newFilters[filterType].filter(id => id !== filterId);
+        newFilters[filterType] = newFilters[filterType].filter((id) => id !== filterId);
       } else {
         newFilters[filterType].push(filterId);
       }
@@ -449,8 +449,8 @@ export default function InventoryDashboard() {
                   control={
                     <MuiCheckbox
                       id="sold"
-                      checked={selectedFilters.make.includes('jeep')}
-                      onChange={() => handleCheckboxChange('make', 'jeep')}
+                      checked={selectedFilters.brand.includes('jeep')}
+                      onChange={() => handleCheckboxChange('brand', 'jeep')}
                     />
                   }
                   label="Jeep"
@@ -460,8 +460,8 @@ export default function InventoryDashboard() {
                   control={
                     <MuiCheckbox
                       id="pending"
-                      checked={selectedFilters.make.includes('Chevrolet')}
-                      onChange={() => handleCheckboxChange('make', 'Chevrolet')}
+                      checked={selectedFilters.brand.includes('Chevrolet')}
+                      onChange={() => handleCheckboxChange('brand', 'Chevrolet')}
                     />
                   }
                   label="Chevrolet"
@@ -471,8 +471,8 @@ export default function InventoryDashboard() {
                   control={
                     <MuiCheckbox
                       id="store"
-                      checked={selectedFilters.make.includes('GMC')}
-                      onChange={() => handleCheckboxChange('make', 'GMC')}
+                      checked={selectedFilters.brand.includes('GMC')}
+                      onChange={() => handleCheckboxChange('brand', 'GMC')}
                     />
                   }
                   label="GMC"

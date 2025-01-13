@@ -25,7 +25,7 @@ const initialState: InventoryState = {
 };
 
 type Filters = {
-  make: string[], duration: string[]
+  brand: string[], duration: string[]
 };
 
 export const fetchInventory = createAsyncThunk(
