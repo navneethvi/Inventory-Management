@@ -132,18 +132,50 @@ export default function InventoryDashboard() {
 
   const handleMsrpChartFilterClick = (filter: string) => {
     setAvgMsrpFilter(filter)
-
   }
 
+  const newInventory = inventory.filter((item) => item.condition === "new")
+  const newMsrp = inventory.filter((item) => item.condition === "new")
+  const totalPrice = newMsrp.reduce(
+    (total, item) => total + parseInt(item.price),
+    0
+  );
+  const avgMsrp = totalPrice / newMsrp.length;
+  const usedInventory = inventory.filter((item) => item.condition === "used")
+  const usedMsrp = inventory.filter((item) => item.condition === "used")
+  const totalPriceUsed = usedMsrp.reduce(
+    (total, item) => total + parseInt(item.price),
+    0
+  );
+  const avgMsrpUsed = totalPriceUsed / usedMsrp.length;
+  const cpoInventory = inventory.filter((item) => item.condition === "cpo")
+  const cpoMsrp = inventory.filter((item) => item.condition === "cpo")
+  const totalPriceCpo = cpoMsrp.reduce(
+    (total, item) => total + parseInt(item.price),
+    0
+  );
+
+
+
+  const formattedPrice = new Intl.NumberFormat("en-US", { style: "currency", currency: "USD" }).format(totalPrice);
+  const formattedAvgMsrp = new Intl.NumberFormat("en-US", { style: "currency", currency: "USD" }).format(avgMsrp);
+  const formattedPriceUsed = new Intl.NumberFormat("en-US", { style: "currency", currency: "USD" }).format(totalPriceUsed);
+  const formattedAvgMsrpUsed = new Intl.NumberFormat("en-US", { style: "currency", currency: "USD" }).format(avgMsrpUsed);
+  const formattedPriceCpo = new Intl.NumberFormat("en-US", { style: "currency", currency: "USD" }).format(totalPriceCpo);
+
+
+
+
+
   const cardData = [
-    { value: inventory.length ? inventory.length : "379", newInfo: "# New Units" },
-    { value: "$13,023.46", newInfo: "New MSRP" },
-    { value: "450", newInfo: "New Avg. MSRP" },
-    { value: "$15,600.00", newInfo: "# Used Units" },
-    { value: "312", newInfo: "Used MSRP" },
-    { value: "$10,100.75", newInfo: "Used Avg. MSRP" },
-    { value: "500", newInfo: "# CPO Units" },
-    { value: "$20,000.00", newInfo: "CPO MSRP" },
+    { value: newInventory.length ? newInventory.length : "0", newInfo: "# New Units" },
+    { value: totalPrice ? formattedPrice : "$0", newInfo: "New MSRP" },
+    { value: avgMsrp ? formattedAvgMsrp : "0", newInfo: "New Avg. MSRP" },
+    { value: usedInventory ? usedInventory.length : "$0", newInfo: "# Used Units" },
+    { value: totalPriceUsed ? formattedPriceUsed : "$0", newInfo: "Used MSRP" },
+    { value: avgMsrpUsed ? formattedAvgMsrpUsed : "$0", newInfo: "Used Avg. MSRP" },
+    { value: cpoInventory ? cpoInventory.length :"0", newInfo: "# CPO Units" },
+    { value: totalPriceCpo ? formattedPriceCpo :"$0", newInfo: "CPO MSRP" },
   ];
 
   const historyLogData = inventory.map((item) => ({
