@@ -33,5 +33,4 @@ app.get('/api', (req: Request, res: Response) => {
 
 app.use('/api/inventory', router);
 
-const server = createServer(app);
-server.listen(3000, () => console.log('Server running'));
+export default app;
