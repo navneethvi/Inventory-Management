@@ -109,8 +109,6 @@ export default function InventoryDashboard() {
       return newFilters;
     });
   };
-
-  console.log("heloooooooooooo");
   
 
   const handleApplyFilters = () => {
