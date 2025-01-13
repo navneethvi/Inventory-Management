@@ -4,7 +4,7 @@ import winston from "winston";
 import { Readable } from 'stream';
 import { Request, Response, NextFunction } from "express";
 
-// Create an S3 Client instance
+
 const s3Client = new S3Client({
     region: process.env.AWS_S3_REGION,
     credentials: {
@@ -30,6 +30,8 @@ const logger = winston.createLogger({
         new winston.transports.Console({ format: winston.format.simple() }),
     ],
 });
+
+
 
 const getInventoryDatas = async (req: Request, res: Response, next: NextFunction) => {
     try {

@@ -3,7 +3,7 @@ import cors from 'cors';
 import path from 'path';
 import router from './routes';
 import { configDotenv } from "dotenv";
-
+import { createServer } from 'http';
 
 const app = express();
 const port = 3000;
@@ -33,6 +33,5 @@ app.get('/api', (req: Request, res: Response) => {
 
 app.use('/api/inventory', router);
 
-module.exports = (req: Request, res: Response) => {
-  app(req, res); 
-};
+const server = createServer(app);
+server.listen(3000, () => console.log('Server running'));
