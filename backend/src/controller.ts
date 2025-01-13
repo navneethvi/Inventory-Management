@@ -30,15 +30,14 @@ const logger = winston.createLogger({
 });
 
 
-
 const getInventoryDatas = async (req: Request, res: Response, next: NextFunction) => {
     try {
         const filters = req.query;
-        console.log("filters", filters);
-        
+        console.log('filters:', filters);
+
         const params = {
             Bucket: 'educore-bucket',
-            Key: '2025-01-12T22:59:48.147Z-sample-data-v2.csv', 
+            Key: '2025-01-12T22:59:48.147Z-sample-data-v2.csv',
         };
 
         const inventoryData: any[] = [];
@@ -52,67 +51,76 @@ const getInventoryDatas = async (req: Request, res: Response, next: NextFunction
             return next(error);
         }
 
+        const processRow = (row: any) => {
+            logger.debug('Processing row:', row);
+
+            let match = true;
+
+            // Apply filters
+            for (const key in filters) {
+                if (key !== 'duration' && filters[key] && row[key]?.toLowerCase() !== String(filters[key]).toLowerCase()) {
+                    logger.debug(`Filter mismatch for ${key}: expected ${filters[key]}, but got ${row[key]}`);
+                    match = false;
+                    break;
+                }
+            }
+
+            // Duration-based filtering
+            if (match && filters.duration) {
+                const rowDate = new Date(row.timestamp);
+                const now = new Date();
+                let startDate: Date;
+                let endDate: Date = now;
+
+                if (filters.duration === 'this-month') {
+                    startDate = new Date(now.getFullYear(), now.getMonth(), 1);
+                } else if (filters.duration === 'last-month') {
+                    startDate = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+                    endDate = new Date(now.getFullYear(), now.getMonth(), 0);
+                } else if (filters.duration === 'last-3-months') {
+                    startDate = new Date(now.getFullYear(), now.getMonth() - 3, 1);
+                } else {
+                    startDate = new Date(0);
+                }
+
+                if (rowDate < startDate || rowDate > endDate) {
+                    logger.debug(
+                        `Date mismatch: Row date ${rowDate} is not in range ${startDate} - ${endDate}`
+                    );
+                    match = false;
+                }
+            }
+
+            if (match) {
+                inventoryData.push(row);
+                logger.info('Row matched filters:', row);
+            }
+        };
+
+        const handleCsvStream = (stream: Readable) => {
+            stream
+                .pipe(csvParser())
+                .on('data', processRow)
+                .on('end', () => {
+                    logger.info('CSV file processing finished');
+                    res.json(inventoryData);
+                })
+                .on('error', (error: any) => {
+                    logger.error('Error processing CSV data:', error);
+                    next(error);
+                });
+        };
+
         if (Body instanceof Readable) {
-            Body.pipe(csvParser())
-                .on('data', (row: any) => {
-                    logger.debug('Processing row:', row);
-
-                    let match = true;
-                    for (const key in filters) {
-                        if (filters[key] && row[key] !== filters[key]) {
-                            logger.debug(`Filter mismatch for ${key}: expected ${filters[key]}, but got ${row[key]}`);
-                            match = false;
-                            break;
-                        }
-                    }
-
-                    if (match) {
-                        inventoryData.push(row);
-                        logger.info('Row matched filters:', row);
-                    }
-                })
-                .on('end', () => {
-                    logger.info('CSV file processing finished');
-                    res.json(inventoryData);
-                })
-                .on('error', (error: any) => {
-                    logger.error('Error processing CSV data:', error);
-                    next(error);
-                });
+            handleCsvStream(Body);
         } else if (Buffer.isBuffer(Body)) {
-            const bufferStream = Readable.from(Body); 
-            bufferStream.pipe(csvParser())
-                .on('data', (row: any) => {
-                    logger.debug('Processing row:', row);
-
-                    let match = true;
-                    for (const key in filters) {
-                        if (filters[key] && row[key] !== filters[key]) {
-                            logger.debug(`Filter mismatch for ${key}: expected ${filters[key]}, but got ${row[key]}`);
-                            match = false;
-                            break;
-                        }
-                    }
-
-                    if (match) {
-                        inventoryData.push(row);
-                        logger.info('Row matched filters:', row);
-                    }
-                })
-                .on('end', () => {
-                    logger.info('CSV file processing finished');
-                    res.json(inventoryData);
-                })
-                .on('error', (error: any) => {
-                    logger.error('Error processing CSV data:', error);
-                    next(error);
-                });
+            const bufferStream = Readable.from(Body);
+            handleCsvStream(bufferStream);
         } else {
             const error = new Error('Received an unexpected Body type.');
             logger.error(error.message);
             return next(error);
         }
-
     } catch (error) {
         logger.error('Error in getInventoryDatas:', error);
         next(error);
